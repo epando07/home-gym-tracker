@@ -3,8 +3,19 @@ const app = express();
 const port = 3000;
 app.use(express.json());
 
-// 1. Exercises Library Array
+// =========================================================================
+// 1. DATA STORAGE (MOCK DATABASE ARRAYS)
+// =========================================================================
+
 let muscleGroups = ["legs", "chest", "back", "arms", "core", "shoulders"];
+
+// Resistance Band Levels Reference Lookup
+const bandLevels = {
+  band_orange: { label: "Orange", intensity: "Light" },
+  band_red: { label: "Red", intensity: "Medium" },
+  band_blue: { label: "Blue", intensity: "Heavy" },
+  band_green: { label: "Green", intensity: "Very Heavy" },
+};
 
 let workouts = [
   {
@@ -61,8 +72,6 @@ let members = [
     memberId: "M1001",
     firstName: "Mom",
     lastName: "",
-    relationship: "Mom",
-    membershipType: "Annual",
     status: "Active",
     joinDate: "2025-01-15",
   },
@@ -70,8 +79,6 @@ let members = [
     memberId: "M1002",
     firstName: "Brother",
     lastName: "",
-    relationship: "Brother",
-    membershipType: "Monthly",
     status: "Active",
     joinDate: "2026-05-10",
   },
@@ -79,8 +86,6 @@ let members = [
     memberId: "M1003",
     firstName: "Girlfriend",
     lastName: "",
-    relationship: "Girlfriend",
-    membershipType: "Annual",
     status: "Active",
     joinDate: "2026-02-14",
   },
@@ -88,16 +93,57 @@ let members = [
     memberId: "M1004",
     firstName: "Coach",
     lastName: "",
-    relationship: "Coach",
-    membershipType: "Premium",
     status: "Active",
     joinDate: "2024-11-01",
   },
 ];
 
+const exercises = [
+  { id: 1, name: "Squat", muscle_group: "legs" },
+  { id: 2, name: "Bench Press", muscle_group: "chest" },
+  { id: 3, name: "Deadlift", muscle_group: "back" },
+  { id: 4, name: "Overhead Press", muscle_group: "shoulders" },
+  { id: 5, name: "Bent Over Row", muscle_group: "back" },
+  { id: 6, name: "Bicep Curl", muscle_group: "arms" },
+  { id: 7, name: "Hip Thrust", muscle_group: "legs" },
+  { id: 8, name: "Romanian Deadlift", muscle_group: "legs" },
+  { id: 9, name: "Shoulder Press", muscle_group: "shoulders" },
+  { id: 10, name: "Incline Bench Press", muscle_group: "chest" },
+  { id: 11, name: "Lateral Raise", muscle_group: "shoulders" },
+  { id: 12, name: "Hammer Curl", muscle_group: "arms" },
+  { id: 13, name: "Tricep Extension", muscle_group: "arms" },
+  { id: 14, name: "Stretch", muscle_group: "shoulders" },
+  { id: 15, name: "Face Pulls", muscle_group: "back" },
+  { id: 16, name: "Chest Fly", muscle_group: "chest" },
+  { id: 17, name: "Lateral Walk", muscle_group: "legs" },
+  { id: 18, name: "Push-ups", muscle_group: "chest" },
+  { id: 19, name: "Pull-ups", muscle_group: "back" },
+  { id: 20, name: "Lunge", muscle_group: "legs" },
+  { id: 21, name: "Dips", muscle_group: "arms" },
+  { id: 22, name: "Plank", muscle_group: "core" },
+  { id: 23, name: "Hanging Knee Raise", muscle_group: "core" },
+  { id: 24, name: "Bulgarian Split Squat", muscle_group: "legs" },
+];
+
+// =========================================================================
+// 2. MEMBER ROUTE ENDPOINTS
+// =========================================================================
+
+// GET - List all members
+app.get("/api/members", (req, res) => {
+  res.json(members);
+});
+
+// POST - Create a new member
+app.post("/api/members", (req, res) => {
+  const newMember = req.body;
+  members.push(newMember);
+  res.status(201).json(newMember);
+});
+
 // GET - Find a single member profile by ID string
 app.get("/api/members/:id", (req, res) => {
-  const targetId = req.params.id; // Grabs "M1001" out of the URL string
+  const targetId = req.params.id;
   const foundMember = members.find((m) => m.memberId === targetId);
 
   if (!foundMember) {
@@ -108,199 +154,69 @@ app.get("/api/members/:id", (req, res) => {
 
 // GET - Get a specific member's complete training history log array
 app.get("/api/members/:id/history", (req, res) => {
-  const targetMemberId = req.params.id; // Grabs "M1004" from the URL path
-
-  // .filter() loops through the logs and keeps EVERYTHING matching this member
+  const targetMemberId = req.params.id;
   const memberHistory = workouts.filter((w) => w.memberId === targetMemberId);
-
   res.json(memberHistory);
 });
 
-// LET - workouts
-const exercises = [
-  // 🏋️ Barbell Exercises (Equipment ID: 1)
-  { id: 1, name: "Barbell Squat", muscle_group: "legs", equipmentId: 1 },
-  { id: 2, name: "Barbell Bench Press", muscle_group: "chest", equipmentId: 1 },
-  { id: 3, name: "Barbell deadLift", muscle_group: "back", equipmentId: 1 },
-  {
-    id: 4,
-    name: "Barbell Overhead Press",
-    muscle_group: "shoulders",
-    equipmentId: 1,
-  },
-  {
-    id: 5,
-    name: "Barbell Bent Over Row",
-    muscle_group: "back",
-    equipmentId: 1,
-  },
-  { id: 6, name: "Barbell Bicep Curl", muscle_group: "arms", equipmentId: 1 },
-  { id: 7, name: "Barbell Hip Thrust", muscle_group: "legs", equipmentId: 1 },
-
-  // 🏋️ Dumbbell Exercises (Equipment ID: 2)
-  {
-    id: 8,
-    name: "Dumbbell Romanian deadLift",
-    muscle_group: "legs",
-    equipmentId: 2,
-  },
-  {
-    id: 9,
-    name: "Dumbbell Shoulder Press",
-    muscle_group: "shoulders",
-    equipmentId: 2,
-  },
-  {
-    id: 10,
-    name: "Dumbbell Incline Bench Press",
-    muscle_group: "chest",
-    equipmentId: 2,
-  },
-  {
-    id: 11,
-    name: "Dumbbell Goblet Squat",
-    muscle_group: "legs",
-    equipmentId: 2,
-  },
-  {
-    id: 12,
-    name: "Dumbbell Lateral Raise",
-    muscle_group: "shoulders",
-    equipmentId: 2,
-  },
-  {
-    id: 13,
-    name: "Dumbbell Hammer Curl",
-    muscle_group: "arms",
-    equipmentId: 2,
-  },
-  {
-    id: 14,
-    name: "Dumbbell Tricep Kickback",
-    muscle_group: "arms",
-    equipmentId: 2,
-  },
-
-  // 🎗️ Resistance Band Exercises (Equipment ID: 3)
-  { id: 15, name: "Band stretch", muscle_group: "shoulders", equipmentId: 3 },
-  { id: 16, name: "Band Bicep Curl", muscle_group: "arms", equipmentId: 3 },
-  { id: 17, name: "Band Squat", muscle_group: "legs", equipmentId: 3 },
-  { id: 18, name: "Band Face Pulls", muscle_group: "back", equipmentId: 3 },
-  { id: 19, name: "Band Chest Fly", muscle_group: "chest", equipmentId: 3 },
-  { id: 20, name: "Band Lateral Walk", muscle_group: "legs", equipmentId: 3 },
-  {
-    id: 21,
-    name: "Band Tricep pushDown",
-    muscle_group: "arms",
-    equipmentId: 3,
-  },
-
-  // 🤸 Bodyweight / Bench Exercises (Equipment ID: 4)
-  { id: 22, name: "Push-ups", muscle_group: "chest", equipmentId: 4 },
-  { id: 23, name: "Pull-ups", muscle_group: "back", equipmentId: 4 },
-  { id: 24, name: "Bodyweight Lunge", muscle_group: "legs", equipmentId: 4 },
-  { id: 25, name: "Bench Dips", muscle_group: "arms", equipmentId: 4 },
-  { id: 26, name: "Plank", muscle_group: "core", equipmentId: 4 },
-  { id: 27, name: "Hanging Knee Raise", muscle_group: "core", equipmentId: 4 },
-  {
-    id: 28,
-    name: "Bulgarian Split Squat",
-    muscle_group: "legs",
-    equipmentId: 4,
-  },
-];
-
-// GET - List all members
-app.get("/api/members", (req, res) => {
-  res.json(members);
-});
-// POST - Create a new member
-app.post("/api/members", (req, res) => {
-  const newMember = req.body;
-  members.push(newMember);
-  res.status(201).json(newMember);
-});
-// GET - Get a member profile with injury notes
-app.get("/api/members/:id", (req, res) => {
-  // 1. Get the ID from the URL and convert it to a number
-  const memberId = req.params.id;
-  // 2. Search our list to find the member with that matching ID
-  const foundMember = members.find((member) => member.memberId === memberId);
-  // 3. If no member matches, stop and send back an error message
-  if (!foundMember) {
-    return res.status(404).send("Member not found");
-  }
-  // 4. If found, send back that member's data
-  res.json(foundMember);
-});
 // PUT - Update a member profile and notes
 app.put("/api/members/:id", (req, res) => {
   res.send(`member profile for id ${req.params.id} updated!`);
 });
+
 // GET - heatmap data + weekly stats
 app.get("/api/members/:id/dashboard", (req, res) => {
   res.send(`Dashboard stats for member id ${req.params.id}`);
 });
 
-// GET - Get a specific member's complete training history log
-app.get("/api/members/:id/history", (req, res) => {
-  const targetMemberId = req.params.id; // Grabs "M1001" or "M1004" as a string
-  const memberHistory = workouts.filter((w) => w.memberId === targetMemberId);
-
-  res.json(memberHistory);
-});
 // GET - previous set weights + equipment for one exercise
 app.get("/api/members/:id/prev-sets/:exerciseId", (req, res) => {
   res.send(
     `Previous sets for exercise id ${req.params.exerciseId} and member id ${req.params.id}`,
   );
 });
+
+// =========================================================================
+// 3. EQUIPMENT & EXERCISE ROUTE ENDPOINTS
+// =========================================================================
+
 // GET - List all muscle group categories
-app.get("/api/muscle-group", (req, res) => {
+app.get("/api/muscle-groups", (req, res) => {
   res.json(muscleGroups);
 });
-// GET - List all equipment
+
+// GET - List all equipment (Un-nested!)
 app.get("/api/equipment", (req, res) => {
   res.json(equipment);
-  // GET - Get a single specific piece of equipment by its numeric ID
-  app.get("/api/equipment/:id", (req, res) => {
-    const equipmentId = parseInt(req.params.id); // Convert the URL string "1" to number 1
-    const foundEquipment = equipment.find((e) => e.id === equipmentId);
-
-    if (!foundEquipment) {
-      return res.status(404).send("Equipment not found");
-    }
-    res.json(foundEquipment);
-  });
 });
+
+// GET - Get a single specific piece of equipment by its numeric ID (Un-nested!)
+app.get("/api/equipment/:id", (req, res) => {
+  const equipmentId = parseInt(req.params.id);
+  const foundEquipment = equipment.find((e) => e.id === equipmentId);
+
+  if (!foundEquipment) {
+    return res.status(404).send("Equipment not found");
+  }
+  res.json(foundEquipment);
+});
+
 // POST - Add a new piece of equipment
 app.post("/api/equipment", (req, res) => {
   res.send("Equipment added!");
 });
+
 // GET - Full library - (filterable by muscle_group and equipment_id)
 app.get("/api/exercises", (req, res) => {
   const muscleFilter = req.query.muscle_group;
   const equipmentFilter = req.query.equipment_id;
   let results = exercises;
 
-  // GET - Get a single specific exercise by its numeric ID
-  app.get("/api/exercises/:id", (req, res) => {
-    const exerciseId = parseInt(req.params.id); // Convert "1" from the URL to a number
-    const foundExercise = exercises.find((e) => e.id === exerciseId);
-
-    if (!foundExercise) {
-      return res.status(404).send("Exercise not found");
-    }
-    res.json(foundExercise);
-  });
-
-  // 1. Matches your array's snake_case "muscle_group" key
   if (muscleFilter) {
     results = results.filter(
       (item) => item.muscle_group === muscleFilter.toLowerCase(),
     );
   }
-  // 2. Filter by equipment ID
   if (equipmentFilter) {
     results = results.filter(
       (item) => item.equipmentId === parseInt(equipmentFilter),
@@ -308,21 +224,40 @@ app.get("/api/exercises", (req, res) => {
   }
   res.json(results);
 });
+
+// GET - Get a single specific exercise by its numeric ID (Un-nested!)
+app.get("/api/exercises/:id", (req, res) => {
+  const exerciseId = parseInt(req.params.id);
+  const foundExercise = exercises.find((e) => e.id === exerciseId);
+
+  if (!foundExercise) {
+    return res.status(404).send("Exercise not found");
+  }
+  res.json(foundExercise);
+});
+
 // POST - Add a new exercise to the library
 app.post("/api/exercises", (req, res) => {
   res.send("Exercise added!");
 });
+
 // GET - Swap options for an exercise
 app.get("/api/exercises/:id/alternatives", (req, res) => {
   res.send(`Exercise details for id ${req.params.id}`);
 });
-// POST - Create a new workout for a member
-app.post("/api/workouts", (req, res) => {
-  res.send("Workout created!");
+
+// =========================================================================
+// 4. WORKOUT TRACKING ROUTE ENDPOINTS
+// =========================================================================
+
+// GET - List all workouts
+app.get("/api/workouts", (req, res) => {
+  res.json(workouts);
 });
+
 // GET - Full workout log sheet by its unique numeric ID
 app.get("/api/workouts/:id", (req, res) => {
-  const workoutId = parseInt(req.params.id); // Convert the URL string "101" to number 101
+  const workoutId = parseInt(req.params.id);
   const foundWorkout = workouts.find((w) => w.id === workoutId);
 
   if (!foundWorkout) {
@@ -330,28 +265,91 @@ app.get("/api/workouts/:id", (req, res) => {
   }
   res.json(foundWorkout);
 });
-// PUT - List workouts
-app.get("/api/workouts", (req, res) => {
-  res.json(workouts);
-  res.send(`Workout updated for id ${req.params.id}`);
-});
-// POST - Log a completed workout - writes all set data
+
+// POST - Log a completed workout session (Equipment Specified per Set/Session)
 app.post("/api/workouts/:id/log", (req, res) => {
-  res.send(`Workout logged for id ${req.params.id}`);
-});
-//POST - Generate a new workout: member ID + target muscle groups
-app.post("/api/workouts/generate", (req, res) => {
-  res.send("Workout generated!");
-});
-// GET - List all muscle group categories
-app.get("/api/muscle-groups", (req, res) => {
-  res.json(muscleGroups);
-});
-// GET - Health check - returns 200 OK
-app.get("/api/health", (req, res) => {
-  res.send("Healthy!");
+  const workoutId = parseInt(req.params.id);
+  const { memberId, exerciseId, reps, sets, weight, equipmentType, bandColor } =
+    req.body;
+
+  // 1. Basic validation
+  if (!memberId || !exerciseId || !reps || !sets || !equipmentType) {
+    return res
+      .status(400)
+      .json({
+        error:
+          "Missing required fields (memberId, exerciseId, reps, sets, or equipmentType)",
+      });
+  }
+
+  // 2. Verify Member Exists
+  const memberExists = members.find((m) => m.memberId === memberId);
+  if (!memberExists) {
+    return res
+      .status(404)
+      .json({ error: `Member ID '${memberId}' does not exist.` });
+  }
+
+  // 3. Verify Exercise Exists
+  const matchingExercise = exercises.find((e) => e.id === parseInt(exerciseId));
+  if (!matchingExercise) {
+    return res
+      .status(404)
+      .json({ error: `Exercise ID '${exerciseId}' not found in library.` });
+  }
+
+  let finalWeight = null;
+  let finalBandDetails = null;
+
+  // 4. Handle Equipment Logic Dynamic Parsing
+  const typeLower = equipmentType.toLowerCase();
+
+  if (typeLower.includes("band") || typeLower === "resistance bands") {
+    // It's a band tracker! Set raw weight to null, process band intensities
+    finalWeight = null;
+    const inputColor = bandColor || "band_orange";
+    if (inputColor === "band_orange") finalBandDetails = "Orange (light)";
+    else if (inputColor === "band_red") finalBandDetails = "Red (medium)";
+    else if (inputColor === "band_blue") finalBandDetails = "Blue (heavy)";
+    else if (inputColor === "band_green")
+      finalBandDetails = "Green (very heavy)";
+    else finalBandDetails = inputColor;
+  } else {
+    // Barbells, Dumbbells, etc. enforce raw numeric weight
+    if (weight === undefined || weight === null) {
+      return res
+        .status(400)
+        .json({
+          error: "Weight is required for weight-bearing equipment types.",
+        });
+    }
+    finalWeight = parseInt(weight);
+  }
+
+  // 5. Create log entry mapping equipment type directly to this log session
+  const newWorkoutLog = {
+    id: workoutId,
+    memberId,
+    exerciseId: parseInt(exerciseId),
+    exerciseName: matchingExercise.name,
+    muscleGroup: matchingExercise.muscle_group,
+    reps: parseInt(reps),
+    sets: parseInt(sets),
+    weight: finalWeight,
+    equipmentUsed: equipmentType, // e.g., "Dumbbell", "Barbell"
+    ...(finalBandDetails && { bandLevel: finalBandDetails }),
+    date: new Date().toISOString().split("T")[0],
+  };
+
+  workouts.push(newWorkoutLog);
+  res
+    .status(201)
+    .json({ message: "Workout logged successfully!", data: newWorkoutLog });
 });
 
+// =========================================================================
+// 5. SERVER STARTUP
+// =========================================================================
 app.listen(port, () => {
   console.log(`Home Gym Tracker API listening on port ${port}`);
 });
