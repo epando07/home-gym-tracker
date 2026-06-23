@@ -1,0 +1,25 @@
+{
+  "name": "home-gym-tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epando07/home-gym-tracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/epando07/home-gym-tracker/issues"
+  },
+  "homepage": "https://github.com/epando07/home-gym-tracker#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
